@@ -1,6 +1,9 @@
-package oks;
+package tests;
 
+import controllers.UserController;
 import io.restassured.response.Response;
+import models.AddUserResponse;
+import models.User;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -9,6 +12,8 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
 
 class ApiTests {
+    UserController userController = new UserController();
+
     @Test
     void createUser() {
         String baseUrl = "https://petstore.swagger.io/v2/";
@@ -28,8 +33,8 @@ class ApiTests {
                 .baseUri(baseUrl)
                 .header("accept", "application/json")
                 .header("Content-Type", "application/json")
-                .body(body)
-                .when()
+                .body(body).
+                when()
                 .post("user")
                 .andReturn();
         response.body().prettyPrint();
@@ -56,14 +61,46 @@ class ApiTests {
                 .baseUri(baseUrl)
                 .header("accept", "application/json")
                 .header("Content-Type", "application/json")
-                .body(body)
-                .when()
+                .body(body).
+                when()
                 .post("user")
                 .then()
                 .statusCode(200)
                 .body("code", equalTo(200))
                 .body("type", equalTo("unknown"))
                 .body("message", notNullValue(String.class));
+    }
+
+    @Test
+    void createUserControllerTest() {
+        User user = new User(0,
+                "username",
+                "firstName",
+                "lastName",
+                "email",
+                "password",
+                "phone",
+                0);
+        User userBuilder = User.builder()
+                .username("username")
+                .firstName("firstName")
+                .lastName("lastName")
+                .email("email")
+                .phone("password")
+                .userStatus(0)
+                .build();
+
+        Response response = userController.createUser(user); //This calls the createUser method on the
+        // userController object and passes the user created earlier. The createUser method likely sends
+        // a request to a server to create the user, and the response is stored in the response variable.
+        AddUserResponse createdUserResponse = response.as(AddUserResponse.class); //This converts
+        // (or deserializes) the response into an AddUserResponse object. It likely contains additional
+        // details about the result of creating the user.
+
+        Assertions.assertEquals(200, response.statusCode());
+        Assertions.assertEquals(200, createdUserResponse.getCode());
+        Assertions.assertEquals("unknown", createdUserResponse.getType());
+        Assertions.assertFalse(createdUserResponse.getMessage().isEmpty());
     }
 }
 
